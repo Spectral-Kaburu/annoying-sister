@@ -1,7 +1,7 @@
 # nudged
 
 A standalone, long-running Go daemon that speaks **idle** and **dormant-project** nudges
-through [SpectreTTS](../spectretts). Part of the Aether toolchain.
+through [SpectreTTS](https://github.com/Spectral-Kaburu/SpectreTTS). Part of the Linus toolchain.
 
 ---
 
