@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/maximus/nudge/internal/atomicfile"
+	"github.com/Spectral-Kaburu/nudge/internal/atomicfile"
 )
 
 // Project is one entry in projects.json.

@@ -18,14 +18,14 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/maximus/nudge/internal/config"
-	"github.com/maximus/nudge/internal/idle"
-	"github.com/maximus/nudge/internal/logging"
-	"github.com/maximus/nudge/internal/nudge"
-	"github.com/maximus/nudge/internal/paths"
-	"github.com/maximus/nudge/internal/projects"
-	"github.com/maximus/nudge/internal/state"
-	"github.com/maximus/nudge/internal/tts"
+	"github.com/Spectral-Kaburu/nudge/internal/config"
+	"github.com/Spectral-Kaburu/nudge/internal/idle"
+	"github.com/Spectral-Kaburu/nudge/internal/logging"
+	"github.com/Spectral-Kaburu/nudge/internal/nudge"
+	"github.com/Spectral-Kaburu/nudge/internal/paths"
+	"github.com/Spectral-Kaburu/nudge/internal/projects"
+	"github.com/Spectral-Kaburu/nudge/internal/state"
+	"github.com/Spectral-Kaburu/nudge/internal/tts"
 )
 
 // eventChanBufferSize matches the spec's suggested buffered channel size.

@@ -1,4 +1,4 @@
-module github.com/maximus/nudge
+module github.com/Spectral-Kaburu/nudge
 
 go 1.24.2
 

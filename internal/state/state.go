@@ -15,7 +15,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/maximus/nudge/internal/atomicfile"
+	"github.com/Spectral-Kaburu/nudge/internal/atomicfile"
 )
 
 // IdleState holds the idle-category cooldown timestamp.
