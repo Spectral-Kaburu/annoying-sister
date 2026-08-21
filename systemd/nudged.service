@@ -1,0 +1,12 @@
+[Unit]
+Description=Nudge — proactive ragebait nudges via SpectreTTS
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/nudged
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
