@@ -11,7 +11,7 @@ import (
 	"github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/Spectral-Kaburu/nudge/internal/config"
+	"github.com/Spectral-Kaburu/annoying-sister/internal/config"
 )
 
 // runSetup launches the interactive setup wizard that lets the user pick

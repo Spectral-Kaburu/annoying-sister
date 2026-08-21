@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Spectral-Kaburu/nudge/internal/atomicfile"
+	"github.com/Spectral-Kaburu/annoying-sister/internal/atomicfile"
 )
 
 // Project is one entry in projects.json.

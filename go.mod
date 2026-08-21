@@ -1,4 +1,4 @@
-module github.com/Spectral-Kaburu/nudge
+module github.com/Spectral-Kaburu/annoying-sister
 
 go 1.24.2
 

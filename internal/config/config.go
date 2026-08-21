@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/Spectral-Kaburu/nudge/internal/atomicfile"
+	"github.com/Spectral-Kaburu/annoying-sister/internal/atomicfile"
 )
 
 // Config mirrors the config.json schema.

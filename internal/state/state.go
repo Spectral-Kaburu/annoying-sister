@@ -15,7 +15,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Spectral-Kaburu/nudge/internal/atomicfile"
+	"github.com/Spectral-Kaburu/annoying-sister/internal/atomicfile"
 )
 
 // IdleState holds the idle-category cooldown timestamp.
