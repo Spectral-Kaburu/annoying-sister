@@ -14,6 +14,7 @@ import (
 	"math/rand"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -125,7 +126,7 @@ func run(logger *slog.Logger) error {
 	var wg sync.WaitGroup
 	wg.Add(4)
 
-	go runIdleWatcher(ctx, &wg, logging.For(logger, logging.ComponentIdle), cfg, dbusReader, stateStore, events, newRand(1), firstIdleDone)
+	go runIdleWatcher(ctx, &wg, logging.For(logger, logging.ComponentIdle), cfg, dbusReader, projStore, stateStore, events, newRand(1), firstIdleDone)
 	go runProjectScanner(ctx, &wg, logging.For(logger, logging.ComponentScanner), cfg, projStore, stateStore, events, newRand(2), firstScanDone)
 	go runOnStart(ctx, &wg, logging.For(logger, logging.ComponentOnStart), cfg, projStore, events, newRand(3), firstScanDone, firstIdleDone)
 	go runConsumer(ctx, &wg, logging.For(logger, logging.ComponentConsumer), events, ttsClient)
@@ -207,6 +208,7 @@ func runIdleWatcher(
 	logger *slog.Logger,
 	cfg config.Config,
 	reader idle.Reader,
+	projStore *projects.Store,
 	stateStore *state.Store,
 	out chan<- nudge.Event,
 	rng *rand.Rand,
@@ -217,6 +219,7 @@ func runIdleWatcher(
 	threshold := time.Duration(cfg.IdleThresholdMinutes) * time.Minute
 	repeat := time.Duration(cfg.IdleRepeatIntervalMinutes) * time.Minute
 	pollInterval := time.Duration(cfg.IdlePollIntervalSeconds) * time.Second
+	dormantThreshold := time.Duration(cfg.DormantThresholdDays) * 24 * time.Hour
 
 	logger.Info("starting", "threshold_minutes", cfg.IdleThresholdMinutes,
 		"repeat_interval_minutes", cfg.IdleRepeatIntervalMinutes,
@@ -242,10 +245,23 @@ func runIdleWatcher(
 			logger.Debug("polled idle time", "idle_minutes", idleTime.Minutes())
 			now := time.Now()
 			lastNudged := stateStore.IdleLastNudged()
-			if fired, msg := engine.Poll(idleTime, lastNudged, now, "", idleTime); fired {
+
+			var dormantProject string
+			var dormantFor time.Duration
+			if projStore != nil {
+				reg := projStore.Snapshot()
+				if name, p, ok := projects.MostDormant(reg); ok && projects.IsDormant(p, dormantThreshold, now) {
+					dormantProject = name
+					dormantFor = now.Sub(p.LastActive)
+				}
+			}
+
+			if fired, roastMsg := engine.Poll(idleTime, lastNudged, now, dormantProject, dormantFor); fired {
 				idleMinutes := int(idleTime.Minutes())
-				text := msg
-				if text == fmt.Sprintf("%d minutes idle.", idleMinutes) {
+				var text string
+				if roastMsg != "" {
+					text = roastMsg
+				} else {
 					text = nudge.RenderIdle(rng, nudge.Slots{IdleMinutes: idleMinutes})
 				}
 				select {
@@ -344,7 +360,13 @@ func runProjectScanner(
 
 		now := time.Now()
 		today := now.Format("2006-01-02")
-		dormantFired := 0
+
+		// Find the most dormant project that hasn't been nudged today.
+		// Nudging at most one project per scan cycle spaces them out naturally.
+		var targetName string
+		var targetProject projects.Project
+		foundDormant := false
+
 		for name, p := range merged {
 			if !projects.IsDormant(p, dormantThreshold, now) {
 				continue
@@ -353,22 +375,26 @@ func runProjectScanner(
 				logger.Debug("dormant project skipped, already nudged today", "project", name)
 				continue
 			}
-			days := int(now.Sub(p.LastActive).Hours() / 24)
-			text := nudge.RenderDormant(rng, nudge.Slots{ProjectName: name, DormantDays: days})
+			if !foundDormant || p.LastActive.Before(targetProject.LastActive) {
+				targetName = name
+				targetProject = p
+				foundDormant = true
+			}
+		}
+
+		if foundDormant {
+			days := int(now.Sub(targetProject.LastActive).Hours() / 24)
+			text := nudge.RenderDormant(rng, nudge.Slots{ProjectName: targetName, DormantDays: days})
 			select {
 			case out <- nudge.Event{Category: nudge.CategoryDormantProject, Text: text}:
-				logger.Info("dormant project nudge fired", "project", name, "dormant_days", days)
-				dormantFired++
-				if err := stateStore.SetProjectLastNudgedDate(name, today); err != nil {
-					logger.Error("failed to persist dormant cooldown state", "project", name, "error", err)
+				logger.Info("dormant project nudge fired", "project", targetName, "dormant_days", days)
+				if err := stateStore.SetProjectLastNudgedDate(targetName, today); err != nil {
+					logger.Error("failed to persist dormant cooldown state", "project", targetName, "error", err)
 				}
 			case <-ctx.Done():
 				logger.Info("shutdown signal received mid-enqueue, exiting")
 				return
 			}
-		}
-		if dormantFired > 0 {
-			logger.Debug("dormant nudge pass complete", "fired_count", dormantFired)
 		}
 
 		if first {
@@ -479,6 +505,34 @@ func runConsumer(ctx context.Context, wg *sync.WaitGroup, logger *slog.Logger, i
 				"text_length", len(ev.Text),
 				"duration_ms", time.Since(start).Milliseconds(),
 			)
+
+			// Breathing space: give SpectreTTS time to speak the text and pause before next message
+			delay := estimateSpeakDelay(ev.Text)
+			logger.Debug("pacing consumer queue", "delay_ms", delay.Milliseconds())
+			select {
+			case <-time.After(delay):
+			case <-ctx.Done():
+				logger.Info("shutdown signal received during pacing delay, exiting")
+				return
+			}
 		}
 	}
+}
+
+// estimateSpeakDelay calculates a pacing duration based on sentence length
+// plus breathing room so consecutive speeches in the queue do not speak over each other.
+func estimateSpeakDelay(text string) time.Duration {
+	words := len(strings.Fields(text))
+	if words == 0 {
+		return 3 * time.Second
+	}
+	// Average speech rate is ~130-150 words/min (~400ms per word) + 2.5s breathing pause
+	dur := time.Duration(words)*400*time.Millisecond + 2500*time.Millisecond
+	if dur < 3*time.Second {
+		dur = 3 * time.Second
+	}
+	if dur > 15*time.Second {
+		dur = 15 * time.Second
+	}
+	return dur
 }
