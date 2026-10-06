@@ -12,6 +12,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"github.com/Spectral-Kaburu/annoying-sister/internal/config"
+	"github.com/Spectral-Kaburu/annoying-sister/internal/tts"
 )
 
 // runSetup launches the interactive setup wizard that lets the user pick
@@ -40,6 +41,16 @@ func runSetup(cfgPath string) error {
 	}
 	if sm.saved {
 		fmt.Fprintf(os.Stderr, "\n✓ Saved %d scan root(s) to %s\n", len(sm.roots), cfgPath)
+
+		// Discover and test SpectreTTS socket by sending a test speech
+		sock := tts.DiscoverSocket(sm.cfg.SpectreTTSSocketPath)
+		fmt.Fprintf(os.Stderr, "🔍 Testing SpectreTTS socket (%s)...\n", sock)
+		client := tts.NewClient(sock)
+		if err := client.Speak("hello"); err != nil {
+			fmt.Fprintf(os.Stderr, "⚠️  Warning: could not speak to SpectreTTS socket at %s: %v\n", sock, err)
+		} else {
+			fmt.Fprintf(os.Stderr, "✓ SpectreTTS test successful: spoke \"hello\"\n")
+		}
 	} else {
 		fmt.Fprintln(os.Stderr, "\nSetup cancelled — no changes written.")
 	}
