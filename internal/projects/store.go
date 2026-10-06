@@ -15,10 +15,12 @@ import (
 
 // Project is one entry in projects.json.
 type Project struct {
-	Path       string    `json:"path"`
-	Summary    string    `json:"summary"`
-	LastActive time.Time `json:"last_active"`
-	Source     string    `json:"source"` // "auto" | "manual"
+	Path             string    `json:"path"`
+	Summary          string    `json:"summary"`
+	LastActive       time.Time `json:"last_active"`
+	Source           string    `json:"source"` // "auto" | "manual"
+	HasUncommitted   bool      `json:"has_uncommitted,omitempty"`
+	UncommittedCount int       `json:"uncommitted_count,omitempty"`
 }
 
 const (

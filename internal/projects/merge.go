@@ -11,8 +11,10 @@ import (
 // Merge having to guess whether a zero time.Time means "really zero" or
 // "computation failed".
 type LastActiveResult struct {
-	LastActive time.Time
-	OK         bool
+	LastActive       time.Time
+	HasUncommitted   bool
+	UncommittedCount int
+	OK               bool
 }
 
 // Merge folds a fresh discovery pass into the existing registry. It
@@ -61,11 +63,13 @@ func Merge(existing Registry, discoveredPaths []string, computeLastActive func(p
 		path := filepath.Clean(rawPath)
 
 		if key, ok := pathToKey[path]; ok {
-			// Case 2: known project, update Path + LastActive only.
+			// Case 2: known project, update Path + LastActive + Git status only.
 			entry := result[key]
 			entry.Path = path
 			if r := computeLastActive(path); r.OK {
 				entry.LastActive = r.LastActive
+				entry.HasUncommitted = r.HasUncommitted
+				entry.UncommittedCount = r.UncommittedCount
 			}
 			result[key] = entry
 			continue
@@ -82,6 +86,8 @@ func Merge(existing Registry, discoveredPaths []string, computeLastActive func(p
 		}
 		if r := computeLastActive(path); r.OK {
 			entry.LastActive = r.LastActive
+			entry.HasUncommitted = r.HasUncommitted
+			entry.UncommittedCount = r.UncommittedCount
 		}
 		result[key] = entry
 	}
