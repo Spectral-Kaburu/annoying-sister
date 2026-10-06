@@ -35,11 +35,12 @@ Project discovery, activity computation, and registry management.
 
 | File | Responsibility |
 |------|---------------|
-| [`store.go`](file:///home/spectre/Documents/assistant/Annoying-sister/internal/projects/store.go) | Thread-safe `Store` guarding `Registry` (`map[string]Project`), persisted atomically to `projects.json`. |
-| [`merge.go`](file:///home/spectre/Documents/assistant/Annoying-sister/internal/projects/merge.go) | Pure 4-case merge algorithm reconciling discovered paths with existing registry entries. |
+| [`store.go`](file:///home/spectre/Documents/assistant/Annoying-sister/internal/projects/store.go) | Thread-safe `Store` guarding `Registry` (`map[string]Project`), persisted atomically to `projects.json`. Tracks `HasUncommitted` and `UncommittedCount`. |
+| [`merge.go`](file:///home/spectre/Documents/assistant/Annoying-sister/internal/projects/merge.go) | Pure 4-case merge algorithm reconciling discovered paths and git status with existing registry entries. |
 | [`discover.go`](file:///home/spectre/Documents/assistant/Annoying-sister/internal/projects/discover.go) | `Discover()` traverses `scan_roots` with `filepath.WalkDir`, filtering out paths in `ignored_paths`, and locates Git root directories. |
+| [`gitstatus.go`](file:///home/spectre/Documents/assistant/Annoying-sister/internal/projects/gitstatus.go) | `CheckGitStatus()` queries `git status --porcelain` to identify uncommitted changes and uncommitted file count. |
 | [`lastactive.go`](file:///home/spectre/Documents/assistant/Annoying-sister/internal/projects/lastactive.go) | `ComputeLastActive()` walks all files/directories within a project (skipping `.git/`) and identifies the latest mtime. |
-| [`dormancy.go`](file:///home/spectre/Documents/assistant/Annoying-sister/internal/projects/dormancy.go) | `IsDormant()` and `MostDormant()` pure evaluation helpers. |
+| [`dormancy.go`](file:///home/spectre/Documents/assistant/Annoying-sister/internal/projects/dormancy.go) | `IsDormant()`, `MostDormant()`, and `MostUrgent()` evaluation helpers prioritizing uncommitted dormant projects. |
 
 ---
 

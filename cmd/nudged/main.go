@@ -248,15 +248,24 @@ func runIdleWatcher(
 
 			var dormantProject string
 			var dormantFor time.Duration
+			var hasUncommitted bool
+			var uncommittedCount int
 			if projStore != nil {
 				reg := projStore.Snapshot()
-				if name, p, ok := projects.MostDormant(reg); ok && projects.IsDormant(p, dormantThreshold, now) {
+				if name, p, ok := projects.MostUrgent(reg, dormantThreshold, now); ok {
 					dormantProject = name
 					dormantFor = now.Sub(p.LastActive)
+					hasUncommitted = p.HasUncommitted
+					uncommittedCount = p.UncommittedCount
 				}
 			}
 
-			if fired, roastMsg := engine.Poll(idleTime, lastNudged, now, dormantProject, dormantFor); fired {
+			if fired, roastMsg := engine.PollContext(idleTime, lastNudged, now, idle.NudgeContext{
+				Project:          dormantProject,
+				DormantFor:       dormantFor,
+				HasUncommitted:   hasUncommitted,
+				UncommittedCount: uncommittedCount,
+			}); fired {
 				idleMinutes := int(idleTime.Minutes())
 				var text string
 				if roastMsg != "" {
@@ -344,7 +353,13 @@ func runProjectScanner(
 				logger.Warn("failed to compute last_active", "path", path, "error", err)
 				return projects.LastActiveResult{OK: false}
 			}
-			return projects.LastActiveResult{LastActive: t, OK: true}
+			gst := projects.CheckGitStatus(path)
+			return projects.LastActiveResult{
+				LastActive:       t,
+				HasUncommitted:   gst.HasUncommitted,
+				UncommittedCount: gst.UncommittedCount,
+				OK:               true,
+			}
 		})
 
 		if err := projStore.Replace(merged); err != nil {
@@ -361,33 +376,32 @@ func runProjectScanner(
 		now := time.Now()
 		today := now.Format("2006-01-02")
 
-		// Find the most dormant project that hasn't been nudged today.
-		// Nudging at most one project per scan cycle spaces them out naturally.
-		var targetName string
-		var targetProject projects.Project
-		foundDormant := false
-
+		// Filter out projects that were already nudged today
+		unNudged := make(projects.Registry)
 		for name, p := range merged {
-			if !projects.IsDormant(p, dormantThreshold, now) {
-				continue
-			}
 			if lastDate, ok := stateStore.ProjectLastNudgedDate(name); ok && lastDate == today {
-				logger.Debug("dormant project skipped, already nudged today", "project", name)
 				continue
 			}
-			if !foundDormant || p.LastActive.Before(targetProject.LastActive) {
-				targetName = name
-				targetProject = p
-				foundDormant = true
-			}
+			unNudged[name] = p
 		}
 
-		if foundDormant {
+		// Prioritize dormant projects with uncommitted changes
+		if targetName, targetProject, ok := projects.MostUrgent(unNudged, dormantThreshold, now); ok {
 			days := int(now.Sub(targetProject.LastActive).Hours() / 24)
-			text := nudge.RenderDormant(rng, nudge.Slots{ProjectName: targetName, DormantDays: days})
+			text := nudge.RenderDormant(rng, nudge.Slots{
+				ProjectName:      targetName,
+				DormantDays:      days,
+				HasUncommitted:   targetProject.HasUncommitted,
+				UncommittedCount: targetProject.UncommittedCount,
+			})
 			select {
 			case out <- nudge.Event{Category: nudge.CategoryDormantProject, Text: text}:
-				logger.Info("dormant project nudge fired", "project", targetName, "dormant_days", days)
+				logger.Info("dormant project nudge fired",
+					"project", targetName,
+					"dormant_days", days,
+					"has_uncommitted", targetProject.HasUncommitted,
+					"uncommitted_count", targetProject.UncommittedCount,
+				)
 				if err := stateStore.SetProjectLastNudgedDate(targetName, today); err != nil {
 					logger.Error("failed to persist dormant cooldown state", "project", targetName, "error", err)
 				}
@@ -419,7 +433,7 @@ func runProjectScanner(
 // runOnStart waits for the first project scan and first idle read to both
 // complete, then fires exactly one on-start NudgeEvent — announcing
 // startup and, if a project is already dormant, mentioning the
-// most-dormant one.
+// most-dormant one (prioritizing uncommitted changes).
 func runOnStart(
 	ctx context.Context,
 	wg *sync.WaitGroup,
@@ -451,15 +465,16 @@ func runOnStart(
 	dormantThreshold := time.Duration(cfg.DormantThresholdDays) * 24 * time.Hour
 	now := time.Now()
 
-	name, p, ok := projects.MostDormant(reg)
-	hasDormant := ok && projects.IsDormant(p, dormantThreshold, now)
+	name, p, hasDormant := projects.MostUrgent(reg, dormantThreshold, now)
 
 	var slots nudge.Slots
 	logAttrs := []any{"has_dormant_project", hasDormant}
 	if hasDormant {
 		slots.ProjectName = name
 		slots.DormantDays = int(now.Sub(p.LastActive).Hours() / 24)
-		logAttrs = append(logAttrs, "project", name, "dormant_days", slots.DormantDays)
+		slots.HasUncommitted = p.HasUncommitted
+		slots.UncommittedCount = p.UncommittedCount
+		logAttrs = append(logAttrs, "project", name, "dormant_days", slots.DormantDays, "has_uncommitted", p.HasUncommitted)
 	}
 
 	text := nudge.RenderOnStart(rng, hasDormant, slots)

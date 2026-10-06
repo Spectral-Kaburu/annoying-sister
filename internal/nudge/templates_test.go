@@ -39,6 +39,32 @@ func TestRenderOnStart_WithDormant_MentionsProject(t *testing.T) {
 	assert.Contains(t, text, "VidKing")
 }
 
+func TestRenderDormant_WithUncommitted_MentionsUncommitted(t *testing.T) {
+	rng := rand.New(rand.NewSource(1))
+	text := RenderDormant(rng, Slots{
+		ProjectName:      "VidKing",
+		DormantDays:      5,
+		HasUncommitted:   true,
+		UncommittedCount: 3,
+	})
+	assert.Contains(t, text, "VidKing")
+	assert.Contains(t, text, "uncommitted")
+	assert.NotContains(t, text, "{ProjectName}")
+	assert.NotContains(t, text, "{UncommittedCount}")
+}
+
+func TestRenderOnStart_WithUncommitted_MentionsUncommitted(t *testing.T) {
+	rng := rand.New(rand.NewSource(1))
+	text := RenderOnStart(rng, true, Slots{
+		ProjectName:      "VidKing",
+		DormantDays:      5,
+		HasUncommitted:   true,
+		UncommittedCount: 4,
+	})
+	assert.Contains(t, text, "VidKing")
+	assert.Contains(t, text, "uncommitted")
+}
+
 // Regression guard for the spec's explicit requirement: repeated idle
 // firings within one stretch must not consistently read as the same line.
 // A single fixed template would make every idle nudge identical; this

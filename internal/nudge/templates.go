@@ -9,15 +9,14 @@ import (
 // Slots holds every placeholder value a template pool might reference.
 // Not every field is used by every category.
 type Slots struct {
-	ProjectName string // never a file path — see Content Restrictions in the spec
-	IdleMinutes int
-	DormantDays int
+	ProjectName      string // never a file path — see Content Restrictions in the spec
+	IdleMinutes      int
+	DormantDays      int
+	HasUncommitted   bool
+	UncommittedCount int
 }
 
-// Placeholder template pools. Per the spec these are explicitly marked
-// "rewrite before ship" — what matters structurally right now is that each
-// pool has enough entries that repeated firings (especially idle, which
-// can repeat many times in one stretch) don't read as identical.
+// Placeholder template pools.
 var (
 	idlePool = []string{
 		"Still there? It's been {IdleMinutes} minutes of total silence.",
@@ -40,7 +39,22 @@ var (
 		"Hey, {ProjectName} is quietly judging your life choices after {DormantDays} days of silence.",
 	}
 
-	// Used when at least one project is dormant at startup.
+	dormantWithUncommittedPool = []string{
+		"{ProjectName} has uncommitted changes sitting untouched for {DormantDays} days. Don't lose your train of thought.",
+		"You left {UncommittedCount} uncommitted files in {ProjectName} {DormantDays} days ago. It's so close to being done.",
+		"Reminder: {ProjectName} still has uncommitted work waiting on you from {DormantDays} days ago.",
+		"{ProjectName} has uncommitted edits waiting for a commit. Finish what you started {DormantDays} days ago.",
+		"{DormantDays} days since you made edits in {ProjectName} without committing. You know you'll forget what they do.",
+	}
+
+	// Used when at least one project is dormant at startup with uncommitted changes.
+	onStartWithUncommittedPool = []string{
+		"I'm awake and watching. Heads up: you left uncommitted changes in {ProjectName} from {DormantDays} days ago.",
+		"System online. {ProjectName} has {UncommittedCount} uncommitted files waiting to be wrapped up.",
+		"Daemon started. You have uncommitted work in {ProjectName}. Let's finish it today.",
+	}
+
+	// Used when at least one project is dormant at startup without uncommitted changes.
 	onStartWithDormantPool = []string{
 		"I'm awake and watching. By the way, {ProjectName} has been waiting on you for {DormantDays} days.",
 		"System online. Just so you know, {ProjectName} hasn't moved in {DormantDays} days.",
@@ -66,6 +80,7 @@ func fill(template string, slots Slots) string {
 		"{ProjectName}", slots.ProjectName,
 		"{IdleMinutes}", fmt.Sprintf("%d", slots.IdleMinutes),
 		"{DormantDays}", fmt.Sprintf("%d", slots.DormantDays),
+		"{UncommittedCount}", fmt.Sprintf("%d", slots.UncommittedCount),
 	)
 	return r.Replace(template)
 }
@@ -76,18 +91,22 @@ func RenderIdle(rng *rand.Rand, slots Slots) string {
 	return fill(pick(rng, idlePool), slots)
 }
 
-// RenderDormant picks a random dormant-project-pool template and fills it
-// with slots.ProjectName and slots.DormantDays.
+// RenderDormant picks a random dormant-project-pool template. If
+// slots.HasUncommitted is true, it selects from the uncommitted pool.
 func RenderDormant(rng *rand.Rand, slots Slots) string {
+	if slots.HasUncommitted {
+		return fill(pick(rng, dormantWithUncommittedPool), slots)
+	}
 	return fill(pick(rng, dormantPool), slots)
 }
 
-// RenderOnStart picks a random on-start template. If hasDormant is false,
-// the generic pool is used regardless of what's in slots, since there is
-// no dormant project to reference.
+// RenderOnStart picks a random on-start template.
 func RenderOnStart(rng *rand.Rand, hasDormant bool, slots Slots) string {
 	if !hasDormant {
 		return fill(pick(rng, onStartGenericPool), slots)
+	}
+	if slots.HasUncommitted {
+		return fill(pick(rng, onStartWithUncommittedPool), slots)
 	}
 	return fill(pick(rng, onStartWithDormantPool), slots)
 }

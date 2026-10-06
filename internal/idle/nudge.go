@@ -34,6 +34,14 @@ func NewNudgeEngine(watcher *Watcher, media MediaPlayerReader, roaster *Roaster)
 // idle/threshold/repeat logic is untouched. A MediaPlayerReader error is
 // treated as "nothing playing" so a flaky D-Bus call never silences a nudge.
 func (e *NudgeEngine) Poll(idleTime time.Duration, lastNudged time.Time, now time.Time, project string, dormantFor time.Duration) (fired bool, roastMsg string) {
+	return e.PollContext(idleTime, lastNudged, now, NudgeContext{
+		Project:    project,
+		DormantFor: dormantFor,
+	})
+}
+
+// PollContext runs one decision cycle with full NudgeContext (including uncommitted status).
+func (e *NudgeEngine) PollContext(idleTime time.Duration, lastNudged time.Time, now time.Time, ctx NudgeContext) (fired bool, roastMsg string) {
 	if e == nil || e.watcher == nil {
 		return false, ""
 	}
@@ -44,7 +52,7 @@ func (e *NudgeEngine) Poll(idleTime time.Duration, lastNudged time.Time, now tim
 	if e.media != nil {
 		if playing, player, err := e.media.NowPlaying(); err == nil && playing {
 			if e.roaster != nil {
-				msg := e.roaster.Compose(NudgeContext{Project: project, DormantFor: dormantFor}, player)
+				msg := e.roaster.Compose(ctx, player)
 				return true, msg
 			}
 		}

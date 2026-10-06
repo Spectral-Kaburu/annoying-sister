@@ -9,8 +9,10 @@ import (
 // NudgeContext carries the info a roast needs: which project has gone
 // dormant (from Sentinel/ProjectManager) and how long it's been idle.
 type NudgeContext struct {
-	Project    string
-	DormantFor time.Duration
+	Project          string
+	DormantFor       time.Duration
+	HasUncommitted   bool
+	UncommittedCount int
 }
 
 // roastFunc renders one line of a roast given the nudge context and the
@@ -18,14 +20,18 @@ type NudgeContext struct {
 type roastFunc func(ctx NudgeContext, player string) string
 
 // roastTemplates: sharp, specific to the procrastination (player X open,
-// project Y untouched), not attacks on the person. Add/replace freely —
-// nothing else in the package depends on their exact wording, only on
-// Roaster.Compose returning a non-empty string.
+// project Y untouched), not attacks on the person.
 var roastTemplates = []roastFunc{
 	func(ctx NudgeContext, player string) string {
 		proj := ctx.Project
 		if proj == "" {
 			proj = "your project"
+		}
+		if ctx.HasUncommitted {
+			return fmt.Sprintf(
+				"%s is playing while %s has %d uncommitted files waiting. Bold strategy, considering code doesn't commit itself.",
+				player, proj, ctx.UncommittedCount,
+			)
 		}
 		if ctx.DormantFor > 0 {
 			return fmt.Sprintf(
@@ -43,6 +49,12 @@ var roastTemplates = []roastFunc{
 		if proj == "" {
 			proj = "your project"
 		}
+		if ctx.HasUncommitted {
+			return fmt.Sprintf(
+				"You didn't just walk away from %s — you left uncommitted work sitting there while you watch %s. At least own it.",
+				proj, player,
+			)
+		}
 		return fmt.Sprintf(
 			"You didn't get distracted — you made a conscious decision to choose %s over %s. At least own it.",
 			player, proj,
@@ -53,6 +65,12 @@ var roastTemplates = []roastFunc{
 		if proj == "" {
 			proj = "your project"
 		}
+		if ctx.HasUncommitted {
+			return fmt.Sprintf(
+				"%s: uncommitted edits pending. %s: currently playing. Priorities, right?",
+				proj, player,
+			)
+		}
 		return fmt.Sprintf(
 			"%s: paused. %s: playing. Somewhere your future self is filing this under 'procrastination evidence.'",
 			proj, player,
@@ -62,6 +80,12 @@ var roastTemplates = []roastFunc{
 		proj := ctx.Project
 		if proj == "" {
 			proj = "the project"
+		}
+		if ctx.HasUncommitted {
+			return fmt.Sprintf(
+				"Noted for the %s post-mortem: 'abandoned mid-edit with uncommitted changes for %s, no survivors.'",
+				proj, player,
+			)
 		}
 		if ctx.DormantFor > 0 {
 			return fmt.Sprintf(
@@ -78,6 +102,12 @@ var roastTemplates = []roastFunc{
 		proj := ctx.Project
 		if proj == "" {
 			proj = "Your project"
+		}
+		if ctx.HasUncommitted {
+			return fmt.Sprintf(
+				"%s is waiting for you to commit your unfinished changes, and you picked right now to enjoy %s. Incredible timing.",
+				proj, player,
+			)
 		}
 		return fmt.Sprintf(
 			"%s has been sitting dormant long enough to develop its own ecosystem, and you picked right now to enjoy %s. Incredible timing.",

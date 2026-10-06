@@ -46,3 +46,20 @@ func TestRoaster_Compose_EveryTemplateMentionsProjectAndPlayer(t *testing.T) {
 		t.Errorf("expected variety across draws, got %d distinct messages", len(seen))
 	}
 }
+
+func TestRoaster_Compose_WithUncommittedChanges(t *testing.T) {
+	ctx := NudgeContext{
+		Project:          "AnnoyingSister",
+		DormantFor:       3 * 24 * time.Hour,
+		HasUncommitted:   true,
+		UncommittedCount: 5,
+	}
+	r := NewRoaster(123)
+	msg := r.Compose(ctx, "Spotify")
+	if !strings.Contains(msg, "AnnoyingSister") {
+		t.Errorf("expected roast to mention project, got %q", msg)
+	}
+	if !strings.Contains(msg, "Spotify") {
+		t.Errorf("expected roast to mention player, got %q", msg)
+	}
+}
