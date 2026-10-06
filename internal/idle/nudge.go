@@ -1,9 +1,6 @@
 package idle
 
-import (
-	"fmt"
-	"time"
-)
+import "time"
 
 // NudgeEngine is the single thing Sentinel's poll loop should call each
 // tick. It wraps Watcher (idle edge-detection, unchanged from decide.go)
@@ -21,18 +18,22 @@ func NewNudgeEngine(watcher *Watcher, media MediaPlayerReader, roaster *Roaster)
 	return &NudgeEngine{watcher: watcher, media: media, roaster: roaster}
 }
 
-// Poll runs one decision cycle and returns (fire, message). message is
-// empty when fire is false. project/dormantFor describe the dormant
-// project Sentinel wants to nudge about (from ProjectManager).
+// Poll runs one decision cycle and returns (fired, roastMsg).
+//
+// fired=false means the idle threshold/repeat check didn't trigger — caller
+// does nothing. fired=true with a non-empty roastMsg means a media player was
+// detected and a roast was composed — use roastMsg verbatim. fired=true with
+// an empty roastMsg means the threshold fired but no media player was active —
+// the caller should render its own nudge text from its template pool.
+//
+// project and dormantFor are passed into the roast context so the roast can
+// mention which project is sitting dormant while the user watches something.
+// Pass "" and 0 when the caller has no project context.
 //
 // Media-player state never suppresses the nudge — Watcher.Decide's
-// idle/threshold/repeat logic is untouched, so this is purely additive.
-// If Decide says fire and a player is actively playing (not just open —
-// paused doesn't count), the roast calls it out by name; otherwise a
-// plain nudge fires. A MediaPlayerReader error is treated the same as
-// "nothing playing" rather than blocking the nudge — a flaky D-Bus call
-// shouldn't be the reason Sentinel goes quiet.
-func (e *NudgeEngine) Poll(idleTime time.Duration, lastNudged time.Time, now time.Time, project string, dormantFor time.Duration) (bool, string) {
+// idle/threshold/repeat logic is untouched. A MediaPlayerReader error is
+// treated as "nothing playing" so a flaky D-Bus call never silences a nudge.
+func (e *NudgeEngine) Poll(idleTime time.Duration, lastNudged time.Time, now time.Time, project string, dormantFor time.Duration) (fired bool, roastMsg string) {
 	if e == nil || e.watcher == nil {
 		return false, ""
 	}
@@ -49,8 +50,6 @@ func (e *NudgeEngine) Poll(idleTime time.Duration, lastNudged time.Time, now tim
 		}
 	}
 
-	if project != "" {
-		return true, fmt.Sprintf("%d minutes idle. %s is still waiting.", int(idleTime.Minutes()), project)
-	}
-	return true, fmt.Sprintf("%d minutes idle.", int(idleTime.Minutes()))
+	// Fired, but no roast — caller picks the template.
+	return true, ""
 }

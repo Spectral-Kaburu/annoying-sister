@@ -20,33 +20,40 @@ type Slots struct {
 // can repeat many times in one stretch) don't read as identical.
 var (
 	idlePool = []string{
-		"Still there? It's been {IdleMinutes} minutes.",
-		"{IdleMinutes} minutes of silence. Riveting.",
-		"I'll just assume you're thinking very deeply for {IdleMinutes} minutes.",
-		"{IdleMinutes} minutes and counting. The cursor blinks alone.",
-		"Taking a break, or is this permanent? {IdleMinutes} minutes so far.",
+		"Still there? It's been {IdleMinutes} minutes of total silence.",
+		"{IdleMinutes} minutes without a single keystroke. The blinking cursor is weeping.",
+		"I'll just assume you're having an intense philosophical breakthrough for {IdleMinutes} minutes.",
+		"Taking a quick break or quietly retiring? You've been idle for {IdleMinutes} minutes.",
+		"{IdleMinutes} minutes idle. Your keyboard is filing a missing persons report.",
+		"Hello? Earth to developer. {IdleMinutes} minutes have vanished into the void.",
+		"Just checking in. It's been {IdleMinutes} minutes of absolute stillness.",
+		"{IdleMinutes} minutes of staring at the screen. Either you're in deep thought, or you fell asleep.",
 	}
 
 	dormantPool = []string{
-		"{ProjectName} hasn't heard from you in {DormantDays} days. It's starting to worry.",
-		"{DormantDays} days since you touched {ProjectName}. Just saying.",
-		"Remember {ProjectName}? It remembers you.",
-		"{ProjectName} has been sitting untouched for {DormantDays} days now.",
-		"It's been {DormantDays} days. {ProjectName} isn't going to finish itself.",
+		"{ProjectName} hasn't seen a single commit or edit in {DormantDays} days. It's getting lonely.",
+		"{DormantDays} days since you last touched {ProjectName}. Remember when you said you'd finish it this week?",
+		"{ProjectName} has been collecting digital dust for {DormantDays} days now.",
+		"It's been {DormantDays} days. {ProjectName} isn't going to build, test, or ship itself.",
+		"Quick reminder: {ProjectName} is still sitting there untouched after {DormantDays} days.",
+		"{ProjectName} is slowly turning into an archaeological artifact. {DormantDays} days untouched.",
+		"Hey, {ProjectName} is quietly judging your life choices after {DormantDays} days of silence.",
 	}
 
 	// Used when at least one project is dormant at startup.
 	onStartWithDormantPool = []string{
-		"I'm up. {ProjectName} is still waiting, by the way.",
-		"Starting fresh. Nothing's changed with {ProjectName} — {DormantDays} days and counting.",
-		"Back online. {ProjectName} has been quiet for {DormantDays} days.",
+		"I'm awake and watching. By the way, {ProjectName} has been waiting on you for {DormantDays} days.",
+		"System online. Just so you know, {ProjectName} hasn't moved in {DormantDays} days.",
+		"Daemon started. Let's see if we can finally give {ProjectName} some attention after {DormantDays} days.",
+		"Online and monitoring. Friendly heads up: {ProjectName} is {DormantDays} days dormant.",
 	}
 
 	// Used when no project is currently dormant at startup.
 	onStartGenericPool = []string{
-		"I'm up and watching.",
-		"Nudge is running. Let's see how long that lasts.",
-		"Started up. Everything looks current for now.",
+		"Nudge daemon online and watching your back.",
+		"Systems active. All projects look fresh. Let's keep it that way.",
+		"Daemon started. Ready to keep you honest.",
+		"I'm awake. Don't slack off today.",
 	}
 )
 

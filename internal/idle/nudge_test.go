@@ -35,6 +35,9 @@ func TestNudgeEngine_BelowThreshold_NeverFires(t *testing.T) {
 }
 
 func TestNudgeEngine_FiresPlain_WhenNoPlayerActive(t *testing.T) {
+	// When nothing is playing, Poll returns (true, "") — fired but no
+	// roast composed. The caller (runIdleWatcher) renders the text
+	// from its own template pool.
 	watcher := NewWatcher(20*time.Minute, 20*time.Minute)
 	media := fakeMediaPlayerReader{playing: false}
 	engine := NewNudgeEngine(watcher, media, NewRoaster(1))
@@ -45,11 +48,8 @@ func TestNudgeEngine_FiresPlain_WhenNoPlayerActive(t *testing.T) {
 	if !fire {
 		t.Fatal("expected fire at threshold")
 	}
-	if msg == "" {
-		t.Fatal("expected non-empty plain nudge message")
-	}
-	if strings.Contains(msg, "Vlc") {
-		t.Errorf("plain nudge should not reference a player, got %q", msg)
+	if msg != "" {
+		t.Errorf("expected empty roastMsg when no player active (caller uses template pool), got %q", msg)
 	}
 }
 
@@ -73,9 +73,8 @@ func TestNudgeEngine_FiresRoast_WhenPlayerActive(t *testing.T) {
 }
 
 func TestNudgeEngine_MediaPlayerError_FallsBackToPlainNudge(t *testing.T) {
-	// A flaky D-Bus call on the media-player side must not swallow
-	// the nudge entirely — it should just degrade to the plain
-	// message, same as "nothing playing".
+	// A flaky D-Bus call must not swallow the nudge — it should degrade
+	// to an empty roastMsg so the caller can use its own template pool.
 	watcher := NewWatcher(20*time.Minute, 20*time.Minute)
 	media := fakeMediaPlayerReader{playing: true, player: "Vlc", err: errBusUnavailable}
 	engine := NewNudgeEngine(watcher, media, NewRoaster(1))
@@ -86,8 +85,8 @@ func TestNudgeEngine_MediaPlayerError_FallsBackToPlainNudge(t *testing.T) {
 	if !fire {
 		t.Fatal("expected fire at threshold despite media-player error")
 	}
-	if strings.Contains(msg, "Vlc") {
-		t.Errorf("expected plain fallback nudge on media-player error, got %q", msg)
+	if msg != "" {
+		t.Errorf("expected empty roastMsg on media-player error (caller uses template pool), got %q", msg)
 	}
 }
 
