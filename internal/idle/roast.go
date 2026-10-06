@@ -3,6 +3,7 @@ package idle
 import (
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -15,18 +16,23 @@ type NudgeContext struct {
 	UncommittedCount int
 }
 
-// roastFunc renders one line of a roast given the nudge context and the
-// human-friendly player name from MediaPlayerReader.NowPlaying.
+func formatProjectName(proj string) string {
+	if proj == "" {
+		return "your project"
+	}
+	if strings.HasPrefix(strings.ToLower(proj), "project ") || strings.HasPrefix(strings.ToLower(proj), "your project") {
+		return proj
+	}
+	return "project " + proj
+}
+
 type roastFunc func(ctx NudgeContext, player string) string
 
 // roastTemplates: sharp, specific to the procrastination (player X open,
 // project Y untouched), not attacks on the person.
 var roastTemplates = []roastFunc{
 	func(ctx NudgeContext, player string) string {
-		proj := ctx.Project
-		if proj == "" {
-			proj = "your project"
-		}
+		proj := formatProjectName(ctx.Project)
 		if ctx.HasUncommitted {
 			return fmt.Sprintf(
 				"%s is playing while %s has %d uncommitted files waiting. Bold strategy, considering code doesn't commit itself.",
@@ -45,10 +51,7 @@ var roastTemplates = []roastFunc{
 		)
 	},
 	func(ctx NudgeContext, player string) string {
-		proj := ctx.Project
-		if proj == "" {
-			proj = "your project"
-		}
+		proj := formatProjectName(ctx.Project)
 		if ctx.HasUncommitted {
 			return fmt.Sprintf(
 				"You didn't just walk away from %s — you left uncommitted work sitting there while you watch %s. At least own it.",
@@ -61,10 +64,7 @@ var roastTemplates = []roastFunc{
 		)
 	},
 	func(ctx NudgeContext, player string) string {
-		proj := ctx.Project
-		if proj == "" {
-			proj = "your project"
-		}
+		proj := formatProjectName(ctx.Project)
 		if ctx.HasUncommitted {
 			return fmt.Sprintf(
 				"%s: uncommitted edits pending. %s: currently playing. Priorities, right?",
@@ -77,10 +77,7 @@ var roastTemplates = []roastFunc{
 		)
 	},
 	func(ctx NudgeContext, player string) string {
-		proj := ctx.Project
-		if proj == "" {
-			proj = "the project"
-		}
+		proj := formatProjectName(ctx.Project)
 		if ctx.HasUncommitted {
 			return fmt.Sprintf(
 				"Noted for the %s post-mortem: 'abandoned mid-edit with uncommitted changes for %s, no survivors.'",
@@ -99,10 +96,7 @@ var roastTemplates = []roastFunc{
 		)
 	},
 	func(ctx NudgeContext, player string) string {
-		proj := ctx.Project
-		if proj == "" {
-			proj = "Your project"
-		}
+		proj := formatProjectName(ctx.Project)
 		if ctx.HasUncommitted {
 			return fmt.Sprintf(
 				"%s is waiting for you to commit your unfinished changes, and you picked right now to enjoy %s. Incredible timing.",
@@ -115,10 +109,7 @@ var roastTemplates = []roastFunc{
 		)
 	},
 	func(ctx NudgeContext, player string) string {
-		proj := ctx.Project
-		if proj == "" {
-			proj = "your project"
-		}
+		proj := formatProjectName(ctx.Project)
 		return fmt.Sprintf(
 			"Ah yes, %s is definitely the prerequisite dependency required to ship %s. Keep telling yourself that.",
 			player, proj,

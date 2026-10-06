@@ -76,13 +76,21 @@ func pick(rng *rand.Rand, pool []string) string {
 }
 
 func fill(template string, slots Slots) string {
+	proj := slots.ProjectName
+	if proj != "" && !strings.HasPrefix(strings.ToLower(proj), "project ") {
+		proj = "project " + proj
+	}
 	r := strings.NewReplacer(
-		"{ProjectName}", slots.ProjectName,
+		"{ProjectName}", proj,
 		"{IdleMinutes}", fmt.Sprintf("%d", slots.IdleMinutes),
 		"{DormantDays}", fmt.Sprintf("%d", slots.DormantDays),
 		"{UncommittedCount}", fmt.Sprintf("%d", slots.UncommittedCount),
 	)
-	return r.Replace(template)
+	res := r.Replace(template)
+	if strings.HasPrefix(res, "project ") {
+		res = "Project " + strings.TrimPrefix(res, "project ")
+	}
+	return res
 }
 
 // RenderIdle picks a random idle-pool template and fills it with
