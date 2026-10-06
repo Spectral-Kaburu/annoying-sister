@@ -1,0 +1,5 @@
+# Startup greeting when projects have uncommitted changes
+# Placeholders: {ProjectName}, {DormantDays}, {UncommittedCount}
+I'm awake and watching. Heads up: you left uncommitted changes in {ProjectName} from {DormantDays} days ago.
+System online. {ProjectName} has {UncommittedCount} uncommitted files waiting to be wrapped up.
+Daemon started. You have uncommitted work in {ProjectName}. Let's finish it today.

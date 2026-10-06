@@ -71,10 +71,11 @@ func TestRenderOnStart_WithUncommitted_MentionsUncommitted(t *testing.T) {
 // asserts the pool actually has enough variety to avoid that in practice.
 func TestIdlePool_HasEnoughVarietyForRepeatedFirings(t *testing.T) {
 	rng := rand.New(rand.NewSource(42))
+	pool := getStore().Idle()
 	seen := map[string]bool{}
 	for i := 0; i < 200; i++ {
-		seen[pick(rng, idlePool)] = true
+		seen[pick(rng, pool)] = true
 	}
-	require.Greater(t, len(idlePool), 1, "idle pool must have more than one template")
+	require.Greater(t, len(pool), 1, "idle pool must have more than one template")
 	require.Greater(t, len(seen), 1, "200 draws from the idle pool should surface more than one distinct template")
 }

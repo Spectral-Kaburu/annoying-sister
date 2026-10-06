@@ -44,11 +44,39 @@ Located at `~/.blackboxx/nudge/config.json`. If missing at startup, `nudged` gen
 
 ## Data Files
 
-| File | Purpose | Mutated By |
-|------|---------|------------|
+| File / Directory | Purpose | Mutated By |
+|------------------|---------|------------|
 | `config.json` | User settings, thresholds, and scan roots | User / `nudged -setup` |
 | `projects.json` | Registry of discovered and manual projects | Daemon / User |
 | `state.json` | Last-nudged timestamps and cooldown tracking | Daemon |
+| `prompts/` | Plain text template files for nudges, startup greetings, and roasts | User / Daemon (initial seed) |
+
+---
+
+## Prompt & Roast Customization (`prompts/`)
+
+All words, nudges, greetings, and roasts spoken by `nudged` are stored in plain text `.txt` files under `~/.blackboxx/nudge/prompts/`.
+
+Defaults are embedded into the binary and automatically seeded into `~/.blackboxx/nudge/prompts/` if missing. Any edits made by the user in this directory take effect dynamically without needing a service restart.
+
+### Prompt Files
+
+| File | Category | Available Placeholders |
+|------|----------|------------------------|
+| `idle.txt` | Periodic idle nudges | `{IdleMinutes}` |
+| `dormant.txt` | Clean dormant project reminders | `{ProjectName}`, `{DormantDays}` |
+| `dormant_uncommitted.txt` | Dormant projects with uncommitted changes | `{ProjectName}`, `{DormantDays}`, `{UncommittedCount}` |
+| `startup_generic.txt` | Greeting at daemon start (clean workspace) | — |
+| `startup_dormant.txt` | Greeting at daemon start (dormant project exists) | `{ProjectName}`, `{DormantDays}` |
+| `startup_uncommitted.txt` | Greeting at daemon start (uncommitted work exists) | `{ProjectName}`, `{DormantDays}`, `{UncommittedCount}` |
+| `roasts_idle.txt` | Roast when media is playing while idle | `{Player}`, `{ProjectName}` |
+| `roasts_uncommitted.txt` | Roast when media is playing with uncommitted files | `{Player}`, `{ProjectName}`, `{UncommittedCount}` |
+| `roasts_dormant.txt` | Roast when media is playing while project is dormant | `{Player}`, `{ProjectName}`, `{DormantDays}` |
+
+### Syntax & Format
+- One template per line.
+- Empty lines and lines starting with `#` are ignored as comments.
+- `{ProjectName}` is automatically formatted with `"project "` (or `"Project "` at sentence start) unless already present.
 
 ---
 

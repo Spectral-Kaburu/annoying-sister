@@ -1,0 +1,7 @@
+# Roasts when media player is active with uncommitted changes
+# Placeholders: {Player}, {ProjectName}, {UncommittedCount}
+{Player} is playing while {ProjectName} has {UncommittedCount} uncommitted files waiting. Bold strategy, considering code doesn't commit itself.
+You didn't just walk away from {ProjectName} — you left uncommitted work sitting there while you watch {Player}. At least own it.
+{ProjectName}: uncommitted edits pending. {Player}: currently playing. Priorities, right?
+Noted for the {ProjectName} post-mortem: 'abandoned mid-edit with uncommitted changes for {Player}, no survivors.'
+{ProjectName} is waiting for you to commit your unfinished changes, and you picked right now to enjoy {Player}. Incredible timing.

@@ -1,0 +1,10 @@
+# Idle alert prompts when no keystrokes/activity detected
+# Placeholders: {IdleMinutes}
+Still there? It's been {IdleMinutes} minutes of total silence.
+{IdleMinutes} minutes without a single keystroke. The blinking cursor is weeping.
+I'll just assume you're having an intense philosophical breakthrough for {IdleMinutes} minutes.
+Taking a quick break or quietly retiring? You've been idle for {IdleMinutes} minutes.
+{IdleMinutes} minutes idle. Your keyboard is filing a missing persons report.
+Hello? Earth to developer. {IdleMinutes} minutes have vanished into the void.
+Just checking in. It's been {IdleMinutes} minutes of absolute stillness.
+{IdleMinutes} minutes of staring at the screen. Either you're in deep thought, or you fell asleep.

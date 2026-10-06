@@ -1,0 +1,8 @@
+# Roasts when media player is active and user is idle on a project
+# Placeholders: {Player}, {ProjectName}
+{Player} is playing while {ProjectName} sits completely untouched. Bold strategy, considering code doesn't write itself.
+You didn't get distracted — you made a conscious decision to choose {Player} over {ProjectName}. At least own it.
+{Player} is on full blast, and {ProjectName} is on full pause. Interesting work style.
+Noted for the {ProjectName} post-mortem: 'abandoned for {Player}, no survivors.'
+{ProjectName} is waiting, and you picked right now to enjoy {Player}. Incredible timing.
+Ah yes, {Player} is definitely the prerequisite dependency required to ship {ProjectName}. Keep telling yourself that.

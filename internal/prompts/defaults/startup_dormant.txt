@@ -1,0 +1,6 @@
+# Startup greeting when dormant projects exist (clean)
+# Placeholders: {ProjectName}, {DormantDays}
+I'm awake and watching. By the way, {ProjectName} has been waiting on you for {DormantDays} days.
+System online. Just so you know, {ProjectName} hasn't moved in {DormantDays} days.
+Daemon started. Let's see if we can finally give {ProjectName} some attention after {DormantDays} days.
+Online and monitoring. Friendly heads up: {ProjectName} is {DormantDays} days dormant.

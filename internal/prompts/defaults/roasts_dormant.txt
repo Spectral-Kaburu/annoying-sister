@@ -1,0 +1,5 @@
+# Roasts when media player is active while project has been dormant for days
+# Placeholders: {Player}, {ProjectName}, {DormantDays}
+{DormantDays} days since you touched {ProjectName}, and now you're bingeing on {Player}. Bold strategy, let's see how it plays out.
+{ProjectName} has been collecting dust for {DormantDays} days, but sure, {Player} is what needs your attention right now.
+It's been {DormantDays} days since {ProjectName} saw any progress. Glad to see {Player} is thriving though.

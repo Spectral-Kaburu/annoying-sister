@@ -101,10 +101,20 @@ Single source of truth for the file system directory layout under `~/.blackboxx/
 | Function | Returned Path |
 |----------|---------------|
 | `NudgeDir()` | `~/.blackboxx/nudge/` |
+| `PromptsDir()` | `~/.blackboxx/nudge/prompts/` |
 | `ConfigPath()` | `~/.blackboxx/nudge/config.json` |
 | `ProjectsPath()` | `~/.blackboxx/nudge/projects.json` |
 | `StatePath()` | `~/.blackboxx/nudge/state.json` |
-| `EnsureNudgeDir()` | Creates `~/.blackboxx/nudge/` with `0755` permissions |
+| `EnsureNudgeDir()` | Creates `~/.blackboxx/nudge/` and `~/.blackboxx/nudge/prompts/` with `0755` permissions |
+
+---
+
+## [`internal/prompts`](file:///home/spectre/Documents/assistant/Annoying-sister/internal/prompts)
+
+Prompt management, embedded fallback defaults (`//go:embed`), and on-disk template synchronization.
+
+- `EnsureDefaults(promptsDir)`: Automatically seeds missing template `.txt` files into `~/.blackboxx/nudge/prompts/`.
+- `Store`: Dynamically reads prompt pools from disk with transparent fallback to embedded defaults when files are empty or missing.
 
 ---
 
@@ -119,3 +129,4 @@ Atomic file write helper `Write(path, data, perm)` using temporary file creation
 Structured logging using Go `log/slog` and `lmittmann/tint`.
 - Exposes `Init()` and `For(logger, component)`.
 - Standardizes component attribute names across all subsystems.
+

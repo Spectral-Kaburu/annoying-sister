@@ -12,6 +12,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"github.com/Spectral-Kaburu/annoying-sister/internal/config"
+	"github.com/Spectral-Kaburu/annoying-sister/internal/paths"
+	"github.com/Spectral-Kaburu/annoying-sister/internal/prompts"
 	"github.com/Spectral-Kaburu/annoying-sister/internal/tts"
 )
 
@@ -41,6 +43,13 @@ func runSetup(cfgPath string) error {
 	}
 	if sm.saved {
 		fmt.Fprintf(os.Stderr, "\n✓ Saved %d scan root(s) to %s\n", len(sm.roots), cfgPath)
+
+		// Seed prompts directory with default files if not present
+		if pDir, err := paths.PromptsDir(); err == nil {
+			if err := prompts.EnsureDefaults(pDir); err == nil {
+				fmt.Fprintf(os.Stderr, "✓ Prompt templates seeded to %s\n", pDir)
+			}
+		}
 
 		// Discover and test SpectreTTS socket by sending a test speech
 		sock := tts.DiscoverSocket(sm.cfg.SpectreTTSSocketPath)

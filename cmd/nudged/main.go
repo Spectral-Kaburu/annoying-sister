@@ -25,6 +25,7 @@ import (
 	"github.com/Spectral-Kaburu/annoying-sister/internal/nudge"
 	"github.com/Spectral-Kaburu/annoying-sister/internal/paths"
 	"github.com/Spectral-Kaburu/annoying-sister/internal/projects"
+	"github.com/Spectral-Kaburu/annoying-sister/internal/prompts"
 	"github.com/Spectral-Kaburu/annoying-sister/internal/state"
 	"github.com/Spectral-Kaburu/annoying-sister/internal/tts"
 )
@@ -66,6 +67,12 @@ func run(logger *slog.Logger) error {
 
 	if err := paths.EnsureNudgeDir(); err != nil {
 		return err
+	}
+
+	if pDir, err := paths.PromptsDir(); err == nil {
+		if err := prompts.EnsureDefaults(pDir); err != nil {
+			mainLog.Warn("failed to seed default prompts", "error", err)
+		}
 	}
 
 	cfgPath, err := paths.ConfigPath()

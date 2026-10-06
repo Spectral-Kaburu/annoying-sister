@@ -30,6 +30,10 @@ func TestPaths(t *testing.T) {
 	state, err := paths.StatePath()
 	require.NoError(t, err)
 	require.Equal(t, filepath.Join(expectedDir, "state.json"), state)
+
+	promptsDir, err := paths.PromptsDir()
+	require.NoError(t, err)
+	require.Equal(t, filepath.Join(expectedDir, "prompts"), promptsDir)
 }
 
 func TestEnsureNudgeDir(t *testing.T) {
@@ -37,6 +41,7 @@ func TestEnsureNudgeDir(t *testing.T) {
 	t.Setenv("HOME", tempHome)
 
 	expectedDir := filepath.Join(tempHome, ".blackboxx", "nudge")
+	expectedPromptsDir := filepath.Join(expectedDir, "prompts")
 
 	err := paths.EnsureNudgeDir()
 	require.NoError(t, err)
@@ -44,4 +49,8 @@ func TestEnsureNudgeDir(t *testing.T) {
 	info, err := os.Stat(expectedDir)
 	require.NoError(t, err)
 	require.True(t, info.IsDir())
+
+	infoPrompts, err := os.Stat(expectedPromptsDir)
+	require.NoError(t, err)
+	require.True(t, infoPrompts.IsDir())
 }

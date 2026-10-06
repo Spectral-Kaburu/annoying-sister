@@ -1,0 +1,9 @@
+# Dormant project alerts (clean repo)
+# Placeholders: {ProjectName}, {DormantDays}
+{ProjectName} hasn't seen a single commit or edit in {DormantDays} days. It's getting lonely.
+{DormantDays} days since you last touched {ProjectName}. Remember when you said you'd finish it this week?
+{ProjectName} has been collecting digital dust for {DormantDays} days now.
+It's been {DormantDays} days. {ProjectName} isn't going to build, test, or ship itself.
+Quick reminder: {ProjectName} is still sitting there untouched after {DormantDays} days.
+{ProjectName} is slowly turning into an archaeological artifact. {DormantDays} days untouched.
+Hey, {ProjectName} is quietly judging your life choices after {DormantDays} days of silence.

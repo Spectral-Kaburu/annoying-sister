@@ -24,6 +24,7 @@ const (
 	configFileName   = "config.json"
 	projectsFileName = "projects.json"
 	stateFileName    = "state.json"
+	promptsDirName   = "prompts"
 )
 
 // NudgeDir returns the absolute path to ~/.blackboxx/nudge/.
@@ -33,6 +34,15 @@ func NudgeDir() (string, error) {
 		return "", err
 	}
 	return filepath.Join(home, DataRoot, serviceDir), nil
+}
+
+// PromptsDir returns the absolute path to ~/.blackboxx/nudge/prompts/.
+func PromptsDir() (string, error) {
+	dir, err := NudgeDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, promptsDirName), nil
 }
 
 // ConfigPath returns the absolute path to config.json.
@@ -62,12 +72,12 @@ func StatePath() (string, error) {
 	return filepath.Join(dir, stateFileName), nil
 }
 
-// EnsureNudgeDir creates ~/.blackboxx/nudge/ (and any missing parents) if
-// it does not already exist. Safe to call unconditionally at startup.
+// EnsureNudgeDir creates ~/.blackboxx/nudge/ and ~/.blackboxx/nudge/prompts/
+// (and any missing parents) if they do not already exist. Safe to call unconditionally at startup.
 func EnsureNudgeDir() error {
-	dir, err := NudgeDir()
+	promptsDir, err := PromptsDir()
 	if err != nil {
 		return err
 	}
-	return os.MkdirAll(dir, 0o755)
+	return os.MkdirAll(promptsDir, 0o755)
 }

@@ -1,0 +1,7 @@
+# Dormant project alerts with uncommitted changes
+# Placeholders: {ProjectName}, {DormantDays}, {UncommittedCount}
+{ProjectName} has uncommitted changes sitting untouched for {DormantDays} days. Don't lose your train of thought.
+You left {UncommittedCount} uncommitted files in {ProjectName} {DormantDays} days ago. It's so close to being done.
+Reminder: {ProjectName} still has uncommitted work waiting on you from {DormantDays} days ago.
+{ProjectName} has uncommitted edits waiting for a commit. Finish what you started {DormantDays} days ago.
+{DormantDays} days since you made edits in {ProjectName} without committing. You know you'll forget what they do.
